@@ -1,5 +1,5 @@
 // raffle contract
-// entering lottery by paying
+// entering lottery by payingRaffle__UpkeepNotNeeded
 // pick a true random winner
 // winner to be selected every x minutes --> comp automated
 // chainlink oracle --> randomness, automated execution (chainlink keepers)
@@ -11,6 +11,7 @@ pragma solidity ^0.8.7;
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
+import "hardhat/console.sol";
 
 error Raffle__NotEnoughETH();
 error Raffle__TransferFailed();
@@ -71,11 +72,12 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     }
 
     function enterRaffle() public payable {
-        // instead of this: (msg.value > i_entranceFee, "Not enough ETH!")
         if (msg.value < i_entranceFee) revert Raffle__NotEnoughETH();
 
         if (s_raffleState != RaffleState.OPEN) revert Raffle__NotOpen();
+
         s_players.push(payable(msg.sender));
+
         emit RaffleEnter(msg.sender);
     }
 
@@ -168,5 +170,17 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     function getInterval() public view returns (uint256) {
         return i_interval;
+    }
+
+    function getLatestTimeStamp() public view returns (uint256) {
+        return s_lastTimeStamp;
+    }
+
+    function getRequestConfirmations() public pure returns (uint256) {
+        return REQUEST_CONFIRMATIONS;
+    }
+
+    function getNumberOfPlayers() public view returns (uint256) {
+        return s_players.length;
     }
 }
